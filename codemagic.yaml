@@ -1,0 +1,48 @@
+workflows:
+  ios-test-build:
+    name: Memhrey iOS Test Build (unsigned)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      flutter: stable
+    scripts:
+      - name: Get packages
+        script: flutter pub get
+      - name: Build without signing
+        script: flutter build ios --release --no-codesign
+
+  ios-release:
+    name: Memhrey iOS Release
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: codemagic
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.brhantech.memhrey
+      flutter: stable
+    scripts:
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Get packages
+        script: flutter pub get
+      - name: Install pods
+        script: find . -name "Podfile" -execdir pod install \;
+      - name: Build ipa
+        script: |
+          flutter build ipa --release \
+            --build-name=1.0.3 \
+            --build-number=$PROJECT_BUILD_NUMBER \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      email:
+        recipients:
+          - techbrhan@gmail.com
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: false
+        submit_to_app_store: false
