@@ -30,8 +30,8 @@ android {
         applicationId = "com.brhantech.memhrey"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = 5
-        versionName = "1.0.0"
+        versionCode = 7
+        versionName = "1.0.3"
     }
 
     signingConfigs {

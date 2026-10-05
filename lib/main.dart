@@ -63,7 +63,7 @@ class _AppEntryState extends State<AppEntry> {
     final controller = TextEditingController();
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: true,
       builder: (ctx) => AlertDialog(
         scrollable: true,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
