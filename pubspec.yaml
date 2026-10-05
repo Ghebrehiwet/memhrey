@@ -92,11 +92,11 @@ environment:
 # name: tigrigna_learn
 description: A Tigrigna language learning app for children with 4 progressive levels.
 # publish_to: 'none'
-version: 1.0.0+2
- 
+version: 1.0.3+7
+
 # environment:
 #   sdk: '>=3.0.0 <4.0.0'
- 
+
 dependencies:
   flutter:
     sdk: flutter
@@ -120,7 +120,7 @@ dependencies:
 
   # confetti: ^0.7.0        # confetti burst
   # audioplayers: ^6.0.0    # already likely present; for chime sound
- 
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -130,8 +130,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
+  remove_alpha_ios: true
   image_path: "assets/images/app_icon.png"
- 
+
 flutter:
   uses-material-design: true
   assets:
