@@ -30,9 +30,10 @@ workflows:
       - name: Install pods
         script: find . -name "Podfile" -execdir pod install \;
       - name: Build ipa
+        # Version name comes from pubspec.yaml (e.g. version: 1.0.4+3).
+        # Build number is Codemagic's own counter, so it always goes up.
         script: |
           flutter build ipa --release \
-            --build-name=1.0.3 \
             --build-number=$PROJECT_BUILD_NUMBER \
             --export-options-plist=/Users/builder/export_options.plist
     artifacts:
