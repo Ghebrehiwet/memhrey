@@ -312,162 +312,105 @@ class _Level2ScreenState extends State<Level2Screen> {
                     ),
         ),
 
-        // ── Word Search banner — hidden in landscape ───────────────────────
-        // This was the single biggest fixed-space cost after the word
-        // list itself. In landscape (where vertical space is scarce) it's
-        // hidden; portrait — which already looks good — keeps it exactly
-        // as before.
-        if (!isLandscape)
-        Consumer<ProgressProvider>(
-          builder: (_, progress, __) {
-            final unlocked = progress.wordLevelProgress >= 0.8;
-            return GestureDetector(
-              onTap: unlocked
-                  ? () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) =>
-                              const WordSearchSelectorScreen()))
-                  : null,
-              child: Container(
-                width: double.infinity,
-                margin: const EdgeInsets.fromLTRB(12, 6, 12, 0),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                      colors: unlocked
-                          ? [
-                              const Color(0xFF00897B),
-                              const Color(0xFF00695C)
-                            ]
-                          : [
-                              Colors.grey.shade400,
-                              Colors.grey.shade500
-                            ]),
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                        color: (unlocked
-                                ? Colors.teal
-                                : Colors.grey)
-                            .withOpacity(0.3),
-                        blurRadius: 6,
-                        offset: const Offset(0, 3))
-                  ],
-                ),
-                child: Row(children: [
-                  Text(unlocked ? '🔍' : '🔒',
-                      style: const TextStyle(fontSize: 16)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      unlocked
-                          ? 'ምድላይ ቃላት - Word Search'
-                          : 'ምድላይ ቃላት - Word Search (80% required)',
-                      style: const TextStyle(
-                          fontFamily: 'AbyssinicaSIL',
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Icon(
-                      unlocked
-                          ? Icons.arrow_forward_ios
-                          : Icons.lock,
-                      color: Colors.white70,
-                      size: 14),
-                ]),
-              ),
-            );
-          },
-        ).animate().fadeIn(duration: 300.ms),
+        // ── Word Search banner — full size in portrait. In landscape
+        // (tablets, iPads, landscape phones) a compact button sits in the
+        // bottom bar instead, so the feature stays reachable without
+        // costing the word grid any vertical space.
+        if (!isLandscape) const _WordSearchBanner(),
 
-        // ── Pagination — tighter vertical padding ──────────────────────────
-        if (allWords.isNotEmpty)
+        // ── Bottom bar: pagination + (landscape) compact Word Search ───────
+        if (allWords.isNotEmpty || isLandscape)
           Container(
             padding: EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: isLandscape ? 2 : 5),
+                horizontal: 12, vertical: isLandscape ? 2 : 5),
             decoration: BoxDecoration(
               color: Colors.white,
               border: Border(
                   top: BorderSide(color: Colors.grey[200]!)),
             ),
-            child: Row(children: [
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                onPressed: safePage > 0
-                    ? () => setState(
-                        () => _currentPage = safePage - 1)
-                    : null,
-                icon: const Icon(Icons.chevron_left),
-                style: IconButton.styleFrom(
-                  backgroundColor: safePage > 0
-                      ? _accent.withOpacity(0.1)
-                      : Colors.grey[100],
+            child: SafeArea(
+              top: false,
+              bottom: false, // only pads left/right (landscape notch)
+              child: Row(children: [
+                Expanded(
+                  child: allWords.isNotEmpty
+                      ? _pagination(safePage, totalPages)
+                      : const SizedBox.shrink(),
                 ),
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(totalPages, (i) {
-                      final isActive = i == safePage;
-                      return GestureDetector(
-                        onTap: () =>
-                            setState(() => _currentPage = i),
-                        child: AnimatedContainer(
-                          duration:
-                              const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 3),
-                          width: isActive ? 30 : 24,
-                          height: 24,
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? _accent
-                                : Colors.grey[100],
-                            borderRadius:
-                                BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Text('${i + 1}',
-                                style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: isActive
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                    color: isActive
-                                        ? Colors.white
-                                        : Colors.grey[600])),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                ),
-              ),
-              IconButton(
-                visualDensity: VisualDensity.compact,
-                onPressed: safePage < totalPages - 1
-                    ? () => setState(
-                        () => _currentPage = safePage + 1)
-                    : null,
-                icon: const Icon(Icons.chevron_right),
-                style: IconButton.styleFrom(
-                  backgroundColor: safePage < totalPages - 1
-                      ? _accent.withOpacity(0.1)
-                      : Colors.grey[100],
-                ),
-              ),
-            ]),
+                if (isLandscape) ...[
+                  const SizedBox(width: 8),
+                  const _WordSearchBanner(compact: true),
+                ],
+              ]),
+            ),
           ),
       ]),
     );
+  }
+
+  // ── Pagination row (prev · page numbers · next) ─────────────────────────
+  Widget _pagination(int safePage, int totalPages) {
+    return Row(children: [
+      IconButton(
+        visualDensity: VisualDensity.compact,
+        onPressed: safePage > 0
+            ? () => setState(() => _currentPage = safePage - 1)
+            : null,
+        icon: const Icon(Icons.chevron_left),
+        style: IconButton.styleFrom(
+          backgroundColor: safePage > 0
+              ? _accent.withOpacity(0.1)
+              : Colors.grey[100],
+        ),
+      ),
+      Expanded(
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(totalPages, (i) {
+              final isActive = i == safePage;
+              return GestureDetector(
+                onTap: () => setState(() => _currentPage = i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  width: isActive ? 30 : 24,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: isActive ? _accent : Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Text('${i + 1}',
+                        style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: isActive
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                            color: isActive
+                                ? Colors.white
+                                : Colors.grey[600])),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      ),
+      IconButton(
+        visualDensity: VisualDensity.compact,
+        onPressed: safePage < totalPages - 1
+            ? () => setState(() => _currentPage = safePage + 1)
+            : null,
+        icon: const Icon(Icons.chevron_right),
+        style: IconButton.styleFrom(
+          backgroundColor: safePage < totalPages - 1
+              ? _accent.withOpacity(0.1)
+              : Colors.grey[100],
+        ),
+      ),
+    ]);
   }
 }
 
@@ -794,6 +737,109 @@ class _ActivityOption extends StatelessWidget {
         ]),
       ),
     );
+  }
+}
+
+// ─── Word Search entry (full banner or compact pill) ─────────────────────────
+//
+// Portrait shows the full-width banner (unchanged look). Landscape — which
+// covers tablets, iPads and phones turned sideways — shows a compact pill in
+// the bottom bar beside the pagination. Unlocks at 80% word progress.
+
+class _WordSearchBanner extends StatelessWidget {
+  final bool compact;
+  const _WordSearchBanner({this.compact = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final unlocked =
+        context.watch<ProgressProvider>().wordLevelProgress >= 0.8;
+    final VoidCallback? onTap = unlocked
+        ? () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => const WordSearchSelectorScreen()))
+        : null;
+    final colors = unlocked
+        ? const [Color(0xFF00897B), Color(0xFF00695C)]
+        : [Colors.grey.shade400, Colors.grey.shade500];
+
+    // ── Landscape / tablet: compact pill ───────────────────────────────────
+    if (compact) {
+      return Tooltip(
+        message: unlocked ? 'Word Search' : 'Word Search (80% required)',
+        child: GestureDetector(
+          onTap: onTap,
+          child: Container(
+            height: 40,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: colors),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                    color: (unlocked ? Colors.teal : Colors.grey)
+                        .withOpacity(0.3),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3))
+              ],
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(unlocked ? Icons.search : Icons.lock,
+                  color: Colors.white, size: 16),
+              const SizedBox(width: 6),
+              const Text('ምድላይ ቃላት - Word Search',
+                  style: TextStyle(
+                      fontFamily: 'AbyssinicaSIL',
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12)),
+            ]),
+          ),
+        ),
+      ).animate().fadeIn(duration: 300.ms);
+    }
+
+    // ── Portrait: original full-width banner ───────────────────────────────
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.fromLTRB(12, 6, 12, 0),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(colors: colors),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+                color: (unlocked ? Colors.teal : Colors.grey)
+                    .withOpacity(0.3),
+                blurRadius: 6,
+                offset: const Offset(0, 3))
+          ],
+        ),
+        child: Row(children: [
+          Text(unlocked ? '🔍' : '🔒',
+              style: const TextStyle(fontSize: 16)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              unlocked
+                  ? 'ምድላይ ቃላት - Word Search'
+                  : 'ምድላይ ቃላት - Word Search (80% required)',
+              style: const TextStyle(
+                  fontFamily: 'AbyssinicaSIL',
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Icon(unlocked ? Icons.arrow_forward_ios : Icons.lock,
+              color: Colors.white70, size: 14),
+        ]),
+      ),
+    ).animate().fadeIn(duration: 300.ms);
   }
 }
 

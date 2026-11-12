@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/progress_provider.dart';
 import 'screens/home_screen.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final provider = ProgressProvider();
   await provider.init();
+  await NotificationService.instance.init();
   runApp(
     ChangeNotifierProvider.value(
       value: provider,
@@ -44,11 +46,28 @@ class AppEntry extends StatefulWidget {
   State<AppEntry> createState() => _AppEntryState();
 }
 
-class _AppEntryState extends State<AppEntry> {
+class _AppEntryState extends State<AppEntry> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => _checkName());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  // Each time the learner leaves the app, (re)schedule the "come back"
+  // reminders for 7 and 14 days from now, using their latest progress.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused) {
+      NotificationService.instance
+          .scheduleComeBackReminders(context.read<ProgressProvider>());
+    }
   }
 
   void _checkName() {
@@ -56,6 +75,10 @@ class _AppEntryState extends State<AppEntry> {
     final provider = context.read<ProgressProvider>();
     if (provider.levels.isNotEmpty && provider.studentName.isEmpty) {
       _showNameDialog();
+    } else {
+      // Existing learners (name already set): ask once for notification
+      // permission. The system only shows the prompt the first time.
+      NotificationService.instance.requestPermission();
     }
   }
 
@@ -108,6 +131,9 @@ class _AppEntryState extends State<AppEntry> {
                 if (name.isEmpty) return;
                 await context.read<ProgressProvider>().setStudentName(name);
                 if (ctx.mounted) Navigator.of(ctx).pop();
+                // New learners: ask for notification permission right after
+                // they start, so we can remind them where they left off.
+                await NotificationService.instance.requestPermission();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6C63FF),

@@ -73,11 +73,13 @@ class ProgressProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _updateLevel1Progress() {
-    if (_levels.isEmpty) return;
+  // Level 1 progress (0.0–1.0): every activity in all 32 alphabet sets,
+  // plus viewing the reference chart. Public so other parts of the app
+  // (e.g. the come-back reminder) can read it.
+  double get alphabetLevelProgress {
     const activities = ['audio', 'sequencing', 'tracing', 'matching', 'game', 'combo'];
     const int setScount = 32;
-    int total = setScount * activities.length + 1;
+    final total = setScount * activities.length + 1;
     int done = 0;
     for (int i = 0; i < setScount; i++) {
       for (final a in activities) {
@@ -85,7 +87,12 @@ class ProgressProvider extends ChangeNotifier {
       }
     }
     if (_referenceViewed) done++;
-    _levels[0].progressPercent = done / total;
+    return done / total;
+  }
+
+  void _updateLevel1Progress() {
+    if (_levels.isEmpty) return;
+    _levels[0].progressPercent = alphabetLevelProgress;
   }
 
   bool get canTakeLevel1Quiz => (level1?.progressPercent ?? 0) >= 0.8;

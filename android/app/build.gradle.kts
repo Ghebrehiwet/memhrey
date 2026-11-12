@@ -20,6 +20,8 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        // Required by flutter_local_notifications (come-back reminders)
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -30,8 +32,8 @@ android {
         applicationId = "com.brhantech.memhrey"
         minSdk = flutter.minSdkVersion
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.0.3"
+        versionCode = 8
+        versionName = "1.0.4"
     }
 
     signingConfigs {
@@ -54,4 +56,9 @@ android {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    // Required by flutter_local_notifications (come-back reminders)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

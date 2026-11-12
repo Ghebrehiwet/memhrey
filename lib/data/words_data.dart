@@ -1,7 +1,8 @@
 // lib/data/words_data.dart
 import '../models/word.dart';
  
-final List<Word> wordsData = [
+ final List<Word> wordsData = [
+
   // ── w001–w050: Core vocabulary ────────────────────────────────────────────
   const Word(id: 'w001', tigrigna: 'ሰብ', transliteration: 'seb', english: 'person', emoji: '👤', imagePath: 'assets/images/words/w001.png', audioPath: 'assets/audio/words/w001.mp3'),
   const Word(id: 'w002', tigrigna: 'ቤት', transliteration: 'bet', english: 'house', emoji: '🏠', imagePath: 'assets/images/words/w002.png', audioPath: 'assets/audio/words/w002.mp3'),
@@ -513,3 +514,4 @@ final List<Word> wordsData = [
   const Word(id: 'w499', tigrigna: 'ሓፋሽ ህዝቢ', transliteration: 'ḥāfāš hǝzǝbi', english: 'masses', emoji: '👥', imagePath: 'assets/images/words/w499.png', audioPath: 'assets/audio/words/w499.mp3'),
   const Word(id: 'w500', tigrigna: 'ሰላምታ', transliteration: 'salāmǝtā', english: 'greeting', emoji: '🤝', imagePath: 'assets/images/words/w500.png', audioPath: 'assets/audio/words/w500.mp3'),
 ];
+ 
